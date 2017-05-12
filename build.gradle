@@ -1,0 +1,101 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+    }
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven {
+        name = "dynmap"
+        url = "http://repo.mikeprimm.com"
+    }
+    maven {
+        name = "sonatype"
+        url = "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
+    maven {
+        name 'Chris Naude'
+        url "http://www.cnaude.org/repo"
+    }
+}
+
+apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'java' // or 'groovy'. Must be explicitly applied
+apply plugin: 'maven-publish'
+
+def jenkinsBuild = System.getenv("BUILD_NUMBER") ?: "SNAPSHOT"
+version = "${minecraft_version}-${purpleirc_version}-${jenkinsBuild}"
+group = "com.cnaude.purpleirc"
+archivesBaseName = "purpleirc"
+
+configurations {
+    shade
+    compile.extendsFrom shade
+}
+
+sourceCompatibility = targetCompatibility = "1.6" // Need this here so eclipse task generates correctly.
+compileJava {
+    sourceCompatibility = targetCompatibility = "1.6"
+}
+
+minecraft {
+    version = "${minecraft_version}-${forge_version}"
+    runDir = "run"
+
+    mappings = "${forge_mappings}"
+
+    replaceIn "Version.java"
+    replace "@VERSION@", "${project.version}"
+
+}
+
+dependencies {
+    compile 'us.dynmap:DynmapCoreAPI:2.1'
+    shade fileTree (dir: 'dist-lib', include: '*.jar')
+    shade 'org.yaml:snakeyaml:1.17'
+    shade('com.googlecode.json-simple:json-simple:1.1.1') {
+        exclude group: 'org.hamcrest', module: 'hamcrest-core'
+    }
+}
+
+jar {
+    configurations.shade.each { dep ->
+        from(project.zipTree(dep)){
+            exclude 'META-INF', 'META-INF/**', 'LICENSE.txt'
+        }
+    }
+}
+
+processResources {
+    // this will ensure that this task is redone when the versions change.
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    // replace stuff in mcmod.info, nothing else
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+                
+        // replace version and mcversion
+        expand 'version':project.version, 'mcversion':project.minecraft.version
+    }
+        
+    // copy everything else except the mcmod.info
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
+
+compileJava
+{
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
+}
