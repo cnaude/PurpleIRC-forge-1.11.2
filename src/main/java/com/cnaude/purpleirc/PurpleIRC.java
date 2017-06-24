@@ -61,7 +61,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -225,17 +224,17 @@ public class PurpleIRC {
         MinecraftForge.EVENT_BUS.register(new GamePlayerDeathListener(this));
         MinecraftForge.EVENT_BUS.register(new GameServerCommandListener(this));
         MinecraftForge.EVENT_BUS.register(new GamePlayerChatListener(this));
-
-        FMLCommonHandler.instance().bus().register(new GamePlayerJoinListener(this));
-        FMLCommonHandler.instance().bus().register(new GamePlayerQuitListener(this));
-        FMLCommonHandler.instance().bus().register(new GamePlayerPlayerAchievementAwardedListener(this));
+        
+        MinecraftForge.EVENT_BUS.register(new GamePlayerJoinListener(this));
+        MinecraftForge.EVENT_BUS.register(new GamePlayerQuitListener(this));
+        MinecraftForge.EVENT_BUS.register(new GamePlayerPlayerAchievementAwardedListener(this));
 
     }
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         if (Loader.isModLoaded("Dynmap")) {
-            FMLCommonHandler.instance().bus().register(new DynmapListener(this));
+            MinecraftForge.EVENT_BUS.register(new DynmapListener(this));
         }
     }
 
