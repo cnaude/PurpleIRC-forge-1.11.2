@@ -16,6 +16,8 @@
  */
 package com.cnaude.purpleirc;
 
+import com.cnaude.purpleirc.Proxies.CommonProxy;
+import static com.cnaude.purpleirc.PurpleIRC.proxy;
 import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
@@ -32,9 +34,11 @@ import net.minecraft.world.World;
  */
 public class IRCCommandSender implements ICommandSender {
 
-    private final PurpleBot ircBot;
-    private final String target;
     private final PurpleIRC plugin;
+    private final PurpleBot ircBot;
+    private final CommonProxy proxy;
+    
+    private final String target;
     private final boolean ctcpResponse;
     private final String name;
 
@@ -48,22 +52,24 @@ public class IRCCommandSender implements ICommandSender {
      *
      * @param ircBot
      * @param target
+     * @param proxy
      * @param plugin
      * @param ctcpResponse
      * @param name
      */
-    public IRCCommandSender(PurpleBot ircBot, String target, PurpleIRC plugin, boolean ctcpResponse, String name) {
+    public IRCCommandSender(PurpleIRC plugin, PurpleBot ircBot, CommonProxy proxy, String target, boolean ctcpResponse, String name) {
         super();
-        this.target = target;
-        this.ircBot = ircBot;
         this.plugin = plugin;
+        this.proxy = proxy;
+        this.ircBot = ircBot;
+        this.target = target;        
         this.ctcpResponse = ctcpResponse;
         this.name = name;
     }
 
     @Override
     public World getEntityWorld() {
-        return plugin.fmlInstance.getServer().getEntityWorld();
+        return proxy.getEntityWorld();
     }
 
     @Override

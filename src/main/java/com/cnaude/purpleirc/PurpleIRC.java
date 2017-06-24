@@ -24,6 +24,7 @@ import com.cnaude.purpleirc.GameListeners.GamePlayerPlayerAchievementAwardedList
 import com.cnaude.purpleirc.GameListeners.GamePlayerQuitListener;
 import com.cnaude.purpleirc.GameListeners.GameServerCommandListener;
 import com.cnaude.purpleirc.Hooks.DynmapHook;
+import com.cnaude.purpleirc.Proxies.CommonProxy;
 import com.cnaude.purpleirc.Utilities.CaseInsensitiveMap;
 import com.cnaude.purpleirc.Utilities.ChatTokenizer;
 import com.cnaude.purpleirc.Utilities.ColorConverter;
@@ -44,34 +45,33 @@ import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.text.Collator;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.UUID;
 import org.pircbotx.IdentServer;
 import java.io.FileNotFoundException;
 import java.util.Timer;
 import java.util.TimerTask;
-import net.minecraft.command.CommandHandler;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
-import net.minecraftforge.fml.server.FMLServerHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.yaml.snakeyaml.scanner.ScannerException;
 import static net.minecraft.util.text.TextFormatting.RED;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.common.Mod.EventHandler;
+import net.minecraftforge.fml.common.Mod.Instance;
+import net.minecraftforge.fml.common.SidedProxy;
 
 /**
  *
@@ -81,10 +81,14 @@ import static net.minecraft.util.text.TextFormatting.RED;
 public class PurpleIRC {
 
     public static final String MOD_ID = "purpleirc";
-    public FMLServerHandler fmlInstance = FMLServerHandler.instance();
 
-    @Mod.Instance(MOD_ID)
+    @Instance(MOD_ID)
     public static PurpleIRC instance;
+
+    @SidedProxy(
+            serverSide = "com.cnaude.purpleirc.Proxies.ServerProxy",
+            clientSide = "com.cnaude.purpleirc.Proxies.ClientProxy")
+    public static CommonProxy proxy;
 
     private final Description description;
     private PurpleConfiguration config;
@@ -139,7 +143,7 @@ public class PurpleIRC {
     private boolean stripIRCBackgroundColors;
     public boolean customTabList;
     public String customTabGamemode;
-    private boolean listSortByName;
+    public boolean listSortByName;
     public boolean exactNickMatch;
     public boolean ignoreChatCancel;
     public Long ircConnCheckInterval;
@@ -149,7 +153,7 @@ public class PurpleIRC {
     public RegexGlobber regexGlobber;
     public CaseInsensitiveMap<PurpleBot> ircBots;
     public DynmapHook dynmapHook;
-    public CommandHandlers commandHandlers;
+    
     private BotWatcher botWatcher;
     public IRCMessageHandler ircMessageHandler;
 
@@ -187,13 +191,16 @@ public class PurpleIRC {
         return description;
     }
 
-    @Mod.EventHandler
-    public void serverLoad(FMLServerStartingEvent event) throws FileNotFoundException, IOException {
-
+    public void startBots() {
         createConfigDirs();
         createConfig();
-        config = new PurpleConfiguration(configFile, false);
-        loadConfig();
+        try {
+            config = new PurpleConfiguration(configFile, false);
+            loadConfig();
+        } catch (IOException | ScannerException ex) {
+            logError("Error loading " + configFile.getName() + ": " + ex.getMessage());
+            return;
+        }
         loadDisplayNameCache();
         loadUuidCache();
         if (identServerEnabled) {
@@ -205,40 +212,43 @@ public class PurpleIRC {
             }
         }
 
-        commandHandlers = new CommandHandlers(this);
-        registerCommands((CommandHandler) event.getServer().getCommandManager(), commandHandlers);
+        
         regexGlobber = new RegexGlobber();
-        tokenizer = new ChatTokenizer(this);
+        tokenizer = new ChatTokenizer(this, proxy);
         loadBots();
         createSampleBot();
         channelWatcher = new ChannelWatcher(this);
         botWatcher = new BotWatcher(this);
-        ircMessageHandler = new IRCMessageHandler(this);
-        commandQueue = new CommandQueueWatcher(this);
+        ircMessageHandler = new IRCMessageHandler(this, proxy);
+        commandQueue = new CommandQueueWatcher(this, proxy);
         updateChecker = new UpdateChecker(this);
     }
 
-    @Mod.EventHandler
+    @EventHandler
     public void init(FMLInitializationEvent event) {
+
+        proxy.init(this);
 
         MinecraftForge.EVENT_BUS.register(new GamePlayerDeathListener(this));
         MinecraftForge.EVENT_BUS.register(new GameServerCommandListener(this));
         MinecraftForge.EVENT_BUS.register(new GamePlayerChatListener(this));
-        
+
         MinecraftForge.EVENT_BUS.register(new GamePlayerJoinListener(this));
         MinecraftForge.EVENT_BUS.register(new GamePlayerQuitListener(this));
         MinecraftForge.EVENT_BUS.register(new GamePlayerPlayerAchievementAwardedListener(this));
-
+        
     }
 
-    @Mod.EventHandler
+    @EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-        if (Loader.isModLoaded("Dynmap")) {
-            MinecraftForge.EVENT_BUS.register(new DynmapListener(this));
+        if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
+            if (Loader.isModLoaded("Dynmap")) {
+                MinecraftForge.EVENT_BUS.register(new DynmapListener(this));
+            }
         }
     }
 
-    @Mod.EventHandler
+    @EventHandler
     public void serverStop(FMLServerStoppingEvent event) {
         if (channelWatcher != null) {
             logDebug("Disabling channelWatcher ...");
@@ -342,6 +352,7 @@ public class PurpleIRC {
     }
 
     private void loadConfig() throws IOException {
+        logInfo("Loading main config");
         try {
             getConfig().load();
         } catch (FileNotFoundException ex) {
@@ -384,6 +395,8 @@ public class PurpleIRC {
 
         commandAliases = getConfig().getOption("command-aliases", new ArrayList<String>());
 
+        logInfo("Main config loaded");
+
     }
 
     private void loadBots() {
@@ -392,7 +405,7 @@ public class PurpleIRC {
             for (final File file : botsFolder.listFiles()) {
                 if (file.getName().toLowerCase().endsWith(".yml")) {
                     logInfo("Loading bot file: " + file.getName());
-                    PurpleBot ircBot = new PurpleBot(file, this);
+                    PurpleBot ircBot = new PurpleBot(file, this, proxy);
                     if (ircBot.goodBot) {
                         ircBots.put(file.getName(), ircBot);
                         logInfo("Loaded bot: " + file.getName() + " [" + ircBot.botNick + "]");
@@ -512,43 +525,6 @@ public class PurpleIRC {
         return msg;
     }
 
-    public String getServerMotd() {
-        return "MOTD: " + fmlInstance.getServer().getMOTD();
-    }
-
-    /**
-     *
-     * @param ircBot
-     * @param channelName
-     * @return
-     */
-    public String getMCPlayers(PurpleBot ircBot, String channelName) {
-        Map<String, String> playerList = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-
-        for (EntityPlayerMP ep : fmlInstance.getServer().getPlayerList().getPlayers()) {
-            String pName = tokenizer.playerTokenizer(ep, listPlayer);
-            playerList.put(ep.getName(), pName);
-        }
-
-        String pList;
-        if (!listSortByName) {
-            // sort as before
-            ArrayList<String> tmp = new ArrayList<>(playerList.values());
-            Collections.sort(tmp, Collator.getInstance());
-            pList = Joiner.on(listSeparator).join(tmp);
-        } else {
-            // sort without nick prefixes
-            pList = Joiner.on(listSeparator).join(playerList.values());
-        }
-
-        String msg = listFormat
-                .replace("%COUNT%", Integer.toString(playerList.size()))
-                .replace("%MAX%", Integer.toString(fmlInstance.getServer().getMaxPlayers()))
-                .replace("%PLAYERS%", pList);
-        logDebug("L: " + msg);
-        return colorConverter.gameColorsToIrc(msg);
-    }
-
     public String getRemotePlayers(String commandArgs) {
         if (commandArgs != null) {
             String host;
@@ -601,7 +577,7 @@ public class PurpleIRC {
      */
     public String getDisplayName(String pName) {
         String displayName = null;
-        EntityPlayerMP player = getPlayer(pName);
+        EntityPlayer player = proxy.getPlayer(pName);
         logDebug("player: " + player);
         if (player != null) {
             displayName = player.getDisplayNameString();
@@ -677,6 +653,9 @@ public class PurpleIRC {
 
     public void loadDisplayNameCache() {
         try {
+            if (!cacheFile.exists()) {
+                cacheFile.createNewFile();
+            }
             try (BufferedReader in = new BufferedReader(new FileReader(cacheFile))) {
                 String line;
                 while ((line = in.readLine()) != null) {
@@ -714,6 +693,9 @@ public class PurpleIRC {
 
     public void loadUuidCache() {
         try {
+            if (!uuidCacheFile.exists()) {
+                uuidCacheFile.createNewFile();
+            }
             try (BufferedReader in = new BufferedReader(new FileReader(uuidCacheFile))) {
                 String line;
                 while ((line = in.readLine()) != null) {
@@ -783,29 +765,6 @@ public class PurpleIRC {
 
     public String updateCheckerMode() {
         return updateCheckerMode;
-    }
-
-    public void broadcastToGame(final String message, final String permission) {
-        for (EntityPlayerMP ep : fmlInstance.getServer().getPlayerList().getPlayers()) {
-            ep.sendMessage(new TextComponentTranslation(message));
-        }
-    }
-
-    public EntityPlayerMP getPlayerExact(String name) {
-        return (EntityPlayerMP) fmlInstance.getServer().getEntityWorld().getPlayerEntityByName(name);
-    }
-
-    public EntityPlayerMP getPlayer(String name) {
-        for (EntityPlayerMP ep : fmlInstance.getServer().getPlayerList().getPlayers()) {
-            if (ep.getDisplayNameString().equalsIgnoreCase(name)) {
-                return ep;
-            }
-        }
-        return null;
-    }
-
-    public void registerCommands(CommandHandler handler, CommandHandlers handlers) {
-        handler.registerCommand(handlers);
     }
 
     public String getModID() {

@@ -16,6 +16,7 @@
  */
 package com.cnaude.purpleirc;
 
+import com.cnaude.purpleirc.Proxies.CommonProxy;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -28,15 +29,18 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class CommandQueueWatcher {
 
     private final PurpleIRC plugin;
+    private final CommonProxy proxy;
     Timer timer;
     private final Queue<IRCCommand> queue = new ConcurrentLinkedQueue<>();
 
     /**
      *
      * @param plugin
+     * @param proxy
      */
-    public CommandQueueWatcher(final PurpleIRC plugin) {
+    public CommandQueueWatcher(final PurpleIRC plugin, final CommonProxy proxy) {
         this.plugin = plugin;
+        this.proxy = proxy;
         timer = new Timer();
         startWatcher();
     }
@@ -57,7 +61,7 @@ public class CommandQueueWatcher {
             String cmd = ircCommand.getGameCommand().split(" ")[0];
             plugin.logDebug("CMD: " + cmd);
             plugin.logDebug("Dispatching command as IRCCommandSender: " + ircCommand.getGameCommand());
-            plugin.fmlInstance.getServer().getCommandManager().executeCommand(ircCommand.getIRCCommandSender(), ircCommand.getGameCommand());
+            proxy.executeCommand(ircCommand);            
         }
     }
 

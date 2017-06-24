@@ -16,6 +16,7 @@
  */
 package com.cnaude.purpleirc.Utilities;
 
+import com.cnaude.purpleirc.Proxies.CommonProxy;
 import com.cnaude.purpleirc.PurpleBot;
 import com.cnaude.purpleirc.PurpleIRC;
 import net.minecraft.entity.player.EntityPlayer;
@@ -30,14 +31,17 @@ import org.pircbotx.User;
 public class ChatTokenizer {
 
     PurpleIRC plugin;
+    CommonProxy proxy;
 
     /**
      * Class initializer
      *
      * @param plugin
+     * @param proxy
      */
-    public ChatTokenizer(PurpleIRC plugin) {
+    public ChatTokenizer(PurpleIRC plugin, CommonProxy proxy) {        
         this.plugin = plugin;
+        this.proxy = proxy;
     }
 
     /**
@@ -335,10 +339,10 @@ public class ChatTokenizer {
         EntityPlayer player;
         if (plugin.exactNickMatch) {
             plugin.logDebug("Checking for exact player matching " + name);
-            player = plugin.getPlayerExact(name);
+            player = proxy.getPlayerExact(name);
         } else {
             plugin.logDebug("Checking for player matching " + name);
-            player = plugin.getPlayer(name);
+            player = proxy.getPlayer(name);
         }
         return player;
     }

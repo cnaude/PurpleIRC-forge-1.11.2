@@ -19,6 +19,7 @@ package com.cnaude.purpleirc.Commands;
 import com.cnaude.purpleirc.PurpleIRC;
 
 import com.cnaude.purpleirc.CommandSender;
+import com.cnaude.purpleirc.Proxies.CommonProxy;
 import net.minecraft.util.text.TextFormatting;
 
 /**
@@ -28,6 +29,7 @@ import net.minecraft.util.text.TextFormatting;
 public class Help implements IRCCommandInterface {
 
     private final PurpleIRC plugin;
+    private final CommonProxy proxy;
     private final String usage = "([command])";
     private final String desc = "Display help on a specific command or list all commands.";
     private final String name = "help";
@@ -35,9 +37,11 @@ public class Help implements IRCCommandInterface {
     /**
      *
      * @param plugin
+     * @param proxy
      */
-    public Help(PurpleIRC plugin) {
+    public Help(PurpleIRC plugin, CommonProxy proxy) {
         this.plugin = plugin;
+        this.proxy = proxy;
     }
 
     /**
@@ -49,11 +53,11 @@ public class Help implements IRCCommandInterface {
     public void dispatch(CommandSender sender, String[] args) {
         if (args.length >= 2) {
             String s = args[1];
-            if (plugin.commandHandlers.commands.containsKey(s)) {
+            if (proxy.getCommandHandlers().commands.containsKey(s)) {
                 sender.sendMessage(helpStringBuilder(
-                        plugin.commandHandlers.commands.get(s).name(),
-                        plugin.commandHandlers.commands.get(s).desc(),
-                        plugin.commandHandlers.commands.get(s).usage()));
+                        proxy.getCommandHandlers().commands.get(s).name(),
+                        proxy.getCommandHandlers().commands.get(s).desc(),
+                        proxy.getCommandHandlers().commands.get(s).usage()));
                 return;
             } else {
                 sender.sendMessage(TextFormatting.RED + "Invalid sub command: "
@@ -63,12 +67,12 @@ public class Help implements IRCCommandInterface {
         }
         sender.sendMessage(plugin.colorConverter.translateAlternateColorCodes('&',
                 "&5-----[  &fPurpleIRC&5 - &f" + plugin.getDescription().getVersion() + "&5 ]-----"));
-        for (String s : plugin.commandHandlers.sortedCommands) {
-            if (plugin.commandHandlers.commands.containsKey(s)) {
+        for (String s : proxy.getCommandHandlers().sortedCommands) {
+            if (proxy.getCommandHandlers().commands.containsKey(s)) {
                 sender.sendMessage(helpStringBuilder(
-                        plugin.commandHandlers.commands.get(s).name(),
-                        plugin.commandHandlers.commands.get(s).desc(),
-                        plugin.commandHandlers.commands.get(s).usage()));
+                        proxy.getCommandHandlers().commands.get(s).name(),
+                        proxy.getCommandHandlers().commands.get(s).desc(),
+                        proxy.getCommandHandlers().commands.get(s).usage()));
             }
         }
 

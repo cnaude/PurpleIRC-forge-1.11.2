@@ -20,7 +20,6 @@ import com.cnaude.purpleirc.Hooks.DynmapHook;
 import com.cnaude.purpleirc.PurpleBot;
 import com.cnaude.purpleirc.PurpleIRC;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Optional;
 import org.dynmap.DynmapCommonAPI;
 import org.dynmap.DynmapCommonAPIListener;
@@ -64,7 +63,6 @@ public class DynmapListener extends DynmapCommonAPIListener {
         plugin.logInfo("Registering Dynmap listener.");
         this.plugin.dynmapHook = new DynmapHook(plugin, api);
         MinecraftForge.EVENT_BUS.register(this);
-        FMLCommonHandler.instance().bus().register(this);
     }
 
     @Override
@@ -73,7 +71,6 @@ public class DynmapListener extends DynmapCommonAPIListener {
         plugin.logInfo("Unregistering Dynmap listener.");
         try {
             MinecraftForge.EVENT_BUS.unregister(this);
-            FMLCommonHandler.instance().bus().register(this);
             this.plugin.dynmapHook = null;
         } catch (Exception ex) {
             plugin.logDebug(ex.getMessage());

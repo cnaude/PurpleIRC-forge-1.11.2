@@ -21,6 +21,7 @@ import com.cnaude.purpleirc.PurpleIRC;
 import java.io.File;
 
 import com.cnaude.purpleirc.CommandSender;
+import com.cnaude.purpleirc.Proxies.CommonProxy;
 import net.minecraft.util.text.TextFormatting;
 
 /**
@@ -30,6 +31,7 @@ import net.minecraft.util.text.TextFormatting;
 public class Load implements IRCCommandInterface {
 
     private final PurpleIRC plugin;
+    CommonProxy proxy;
     private final String usage = "[bot]";
     private final String desc = "Load a bot file.";
     private final String name = "load";
@@ -38,9 +40,11 @@ public class Load implements IRCCommandInterface {
     /**
      *
      * @param plugin
+     * @param proxy
      */
-    public Load(PurpleIRC plugin) {
+    public Load(PurpleIRC plugin, CommonProxy proxy) {
         this.plugin = plugin;
+        this.proxy = proxy;
     }
 
     /**
@@ -59,7 +63,7 @@ public class Load implements IRCCommandInterface {
             File file = new File(plugin.botsFolder, bot);
             if (file.exists()) {
                 sender.sendMessage(TextFormatting.WHITE + "Loading " + bot + "...");
-                plugin.ircBots.put(file.getName(), new PurpleBot(file, plugin));
+                plugin.ircBots.put(file.getName(), new PurpleBot(file, plugin, proxy));
                 sender.sendMessage("Loaded bot: " + file.getName() + "[" + plugin.ircBots.get(file.getName()).botNick + "]");
             } else {
                 sender.sendMessage(TextFormatting.RED + "No such bot file: " + TextFormatting.WHITE + bot);

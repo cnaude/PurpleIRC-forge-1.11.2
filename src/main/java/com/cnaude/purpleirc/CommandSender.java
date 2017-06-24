@@ -1,5 +1,6 @@
 package com.cnaude.purpleirc;
 
+import com.cnaude.purpleirc.Proxies.CommonProxy;
 import com.cnaude.purpleirc.Utilities.ChatColor;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
@@ -15,10 +16,18 @@ public class CommandSender {
 
     ICommandSender sender;
     PurpleIRC plugin;
+    CommonProxy proxy;
 
-    public CommandSender(ICommandSender sender, PurpleIRC plugin) {
+    /**
+     *
+     * @param sender
+     * @param plugin
+     * @param proxy
+     */
+    public CommandSender(ICommandSender sender, PurpleIRC plugin, CommonProxy proxy) {
         this.sender = sender;
         this.plugin = plugin;
+        this.proxy = proxy;
     }
 
     public void sendMessage(String message) {
@@ -41,7 +50,7 @@ public class CommandSender {
     }
 
     public EntityPlayer getPlayer() {
-        return plugin.getPlayer(sender.getName());
+        return proxy.getPlayer(sender.getName());
     }
 
     public boolean isPlayer() {

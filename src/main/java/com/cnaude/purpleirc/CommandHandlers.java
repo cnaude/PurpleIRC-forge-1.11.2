@@ -17,6 +17,7 @@
 package com.cnaude.purpleirc;
 
 import com.cnaude.purpleirc.Commands.*;
+import com.cnaude.purpleirc.Proxies.CommonProxy;
 import com.google.common.base.Joiner;
 import java.text.Collator;
 import java.util.ArrayList;
@@ -37,14 +38,17 @@ public class CommandHandlers extends CommandBase {
     public HashMap<String, IRCCommandInterface> commands = new HashMap<>();
     public ArrayList<String> sortedCommands = new ArrayList<>();
     private final PurpleIRC plugin;
+    private final CommonProxy proxy;
 
     /**
      *
      * @param plugin
+     * @param proxy
      */
-    public CommandHandlers(PurpleIRC plugin) {
+    public CommandHandlers(PurpleIRC plugin, CommonProxy proxy) {
 
         this.plugin = plugin;
+        this.proxy = proxy;
 
         commands.put("addop", new AddOp(plugin));
         commands.put("addvoice", new AddVoice(plugin));
@@ -62,7 +66,7 @@ public class CommandHandlers extends CommandBase {
         commands.put("listops", new ListOps(plugin));
         commands.put("listvoices", new ListVoices(plugin));
         commands.put("login", new Login(plugin));
-        commands.put("load", new Load(plugin));
+        commands.put("load", new Load(plugin, proxy));
         commands.put("messagedelay", new MessageDelay(plugin));
         commands.put("msg", new Msg(plugin));
         commands.put("motd", new Motd(plugin));
@@ -89,7 +93,7 @@ public class CommandHandlers extends CommandBase {
         commands.put("unload", new Unload(plugin));
         commands.put("voice", new Voice(plugin));
         commands.put("whois", new Whois(plugin));
-        commands.put("help", new Help(plugin));
+        commands.put("help", new Help(plugin, proxy));
 
         for (String s : commands.keySet()) {
             sortedCommands.add(s);
@@ -106,7 +110,7 @@ public class CommandHandlers extends CommandBase {
      */
     @Override
     public void execute(MinecraftServer server, ICommandSender isender, String[] args) {
-        CommandSender sender = new CommandSender(isender, plugin);
+        CommandSender sender = new CommandSender(isender, plugin, proxy);
         if (args.length >= 1) {
             String subCmd = args[0].toLowerCase();
             if (commands.containsKey(subCmd)) {

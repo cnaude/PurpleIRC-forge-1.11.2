@@ -16,6 +16,7 @@
  */
 package com.cnaude.purpleirc.IRCListeners;
 
+import com.cnaude.purpleirc.Proxies.CommonProxy;
 import com.cnaude.purpleirc.TemplateName;
 import com.cnaude.purpleirc.PurpleBot;
 import com.cnaude.purpleirc.PurpleIRC;
@@ -31,15 +32,18 @@ public class NickChangeListener extends ListenerAdapter {
 
     PurpleIRC plugin;
     PurpleBot ircBot;
+    CommonProxy proxy;
 
     /**
      *
      * @param plugin
      * @param ircBot
+     * @param proxy
      */
-    public NickChangeListener(PurpleIRC plugin, PurpleBot ircBot) {
+    public NickChangeListener(PurpleIRC plugin, PurpleBot ircBot, CommonProxy proxy) {
         this.plugin = plugin;
         this.ircBot = ircBot;
+        this.proxy = proxy;
     }
 
     /**
@@ -57,7 +61,7 @@ public class NickChangeListener extends ListenerAdapter {
             Channel channel = ircBot.getChannel(channelName);
             if (channel != null) {
                 if (ircBot.enabledMessages.get(channelName).contains(TemplateName.IRC_NICK_CHANGE)) {
-                    plugin.broadcastToGame(plugin.colorConverter.ircColorsToGame(
+                    proxy.broadcastToGame(plugin.colorConverter.ircColorsToGame(
                             plugin.getMsgTemplate(ircBot.botNick, TemplateName.IRC_NICK_CHANGE)
                             .replace("%NEWNICK%", newNick)
                             .replace("%OLDNICK%", oldNick)

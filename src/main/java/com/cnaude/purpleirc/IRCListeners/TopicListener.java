@@ -16,6 +16,7 @@
  */
 package com.cnaude.purpleirc.IRCListeners;
 
+import com.cnaude.purpleirc.Proxies.CommonProxy;
 import com.cnaude.purpleirc.TemplateName;
 import com.cnaude.purpleirc.PurpleBot;
 import com.cnaude.purpleirc.PurpleIRC;
@@ -32,15 +33,18 @@ public class TopicListener extends ListenerAdapter {
 
     PurpleIRC plugin;
     PurpleBot ircBot;
+    CommonProxy proxy;
 
     /**
      *
      * @param plugin
      * @param ircBot
+     * @param proxy
      */
-    public TopicListener(PurpleIRC plugin, PurpleBot ircBot) {
+    public TopicListener(PurpleIRC plugin, PurpleBot ircBot, CommonProxy proxy) {
         this.plugin = plugin;
         this.ircBot = ircBot;
+        this.proxy = proxy;
     }
 
     /**
@@ -63,7 +67,7 @@ public class TopicListener extends ListenerAdapter {
                             .replace("%CHANNEL%", channel.getName()));
                     plugin.logDebug("Sending topic notification due to "
                             + TemplateName.IRC_TOPIC + " being true: " + message);
-                    plugin.broadcastToGame(message, "irc.message.topic");
+                    proxy.broadcastToGame(message, "irc.message.topic");
                 }
             }
             ircBot.activeTopic.put(channel.getName(), event.getTopic());

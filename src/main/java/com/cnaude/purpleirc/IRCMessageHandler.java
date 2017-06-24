@@ -16,6 +16,7 @@
  */
 package com.cnaude.purpleirc;
 
+import com.cnaude.purpleirc.Proxies.CommonProxy;
 import com.cnaude.purpleirc.Utilities.CaseInsensitiveMap;
 import com.google.common.base.Joiner;
 import java.text.Collator;
@@ -33,13 +34,16 @@ import org.pircbotx.User;
 public class IRCMessageHandler {
 
     PurpleIRC plugin;
+    CommonProxy proxy;
 
     /**
      *
      * @param plugin
+     * @param proxy
      */
-    public IRCMessageHandler(PurpleIRC plugin) {
+    public IRCMessageHandler(PurpleIRC plugin, CommonProxy proxy) {
         this.plugin = plugin;
+        this.proxy = proxy;
     }
 
     /**
@@ -110,7 +114,7 @@ public class IRCMessageHandler {
                     for (String gameCommand : gameCommands) {
                         switch (gameCommand) {
                             case "@list":
-                                sendMessage(ircBot, target, plugin.getMCPlayers(ircBot, myChannel), ctcpResponse);
+                                sendMessage(ircBot, target, proxy.getMCPlayers(ircBot, myChannel), ctcpResponse);
                                 break;
                             case "@uptime":
                                 sendMessage(ircBot, target, plugin.getMCUptime(), ctcpResponse);
@@ -125,7 +129,7 @@ public class IRCMessageHandler {
                                 ircBot.broadcastChat(user, channel, target, commandArgs, true, ctcpResponse);
                                 break;
                             case "@motd":
-                                sendMessage(ircBot, target, plugin.getServerMotd(), ctcpResponse);
+                                sendMessage(ircBot, target, proxy.getServerMotd(), ctcpResponse);
                                 break;
                             case "@version":
                                 sendMessage(ircBot, target, "Minecraft: " + MinecraftForge.MC_VERSION, ctcpResponse);
@@ -153,7 +157,7 @@ public class IRCMessageHandler {
                                 plugin.logDebug("GM: \"" + gameCommand.trim() + "\"");
                                 try {
                                     plugin.commandQueue.add(new IRCCommand(
-                                            new IRCCommandSender(ircBot, target, plugin, ctcpResponse, senderName),
+                                            new IRCCommandSender(plugin, ircBot, proxy, target, ctcpResponse, senderName),
                                             gameCommand.trim()));
                                 } catch (Exception ex) {
                                     plugin.logError(ex.getMessage());
