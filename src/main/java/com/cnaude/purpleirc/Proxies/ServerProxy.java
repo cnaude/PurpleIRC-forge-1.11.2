@@ -42,13 +42,13 @@ public class ServerProxy extends CommonProxy {
     @Override
     public void init(FMLInitializationEvent event) {
         super.init(event);
-        commandHandlers = new CommandHandlers(plugin, this);
-        registerCommands((CommandHandler) fmlServerInstance.getServer().commandManager, commandHandlers);
-        plugin.startBots();
     }
 
     @Override
     public void postInit(FMLPostInitializationEvent event) {
+        commandHandlers = new CommandHandlers(plugin, this);
+        registerCommands((CommandHandler) fmlServerInstance.getServer().commandManager, commandHandlers);
+        plugin.startBots();
         super.postInit(event);
         if (Loader.isModLoaded("Dynmap")) {
             MinecraftForge.EVENT_BUS.register(new DynmapListener(plugin));
