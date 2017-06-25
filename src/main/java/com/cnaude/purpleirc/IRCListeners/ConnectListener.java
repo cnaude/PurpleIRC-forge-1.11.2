@@ -47,29 +47,17 @@ public class ConnectListener extends ListenerAdapter {
      */
     @Override
     public void onConnect(ConnectEvent event) {
-        plugin.logDebug("ON CONNECT 0");
         PircBotX bot = event.getBot();
-        plugin.logDebug("ON CONNECT 1");
         if (bot.getUserBot().getNick().isEmpty()) {
-            plugin.logDebug("ON CONNECT 2");
             plugin.logDebug("Connected but bot nick is blank!");
-            plugin.logDebug("ON CONNECT 3");
         } else {
-            plugin.logDebug("ON CONNECT 4");
             ircBot.broadcastIRCConnect(ircBot.botNick);
-            plugin.logDebug("ON CONNECT 5");
             if (ircBot.sendRawMessageOnConnect) {
-                plugin.logDebug("ON CONNECT 6");
                 plugin.logDebug("Sending raw message to server");
-                plugin.logDebug("ON CONNECT 7");
                 ircBot.asyncRawlineNow(ircBot.rawMessage);
-                plugin.logDebug("ON CONNECT 8");
             }
         }
-        plugin.logDebug("ON CONNECT 9");
         ircBot.setConnected(true);
-        plugin.logDebug("ON CONNECT 10");
         ircBot.autoJoinChannels();
-        plugin.logDebug("ON CONNECT 11");
     }
 }

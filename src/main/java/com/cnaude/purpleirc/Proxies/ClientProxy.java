@@ -12,13 +12,15 @@ import java.util.Map;
 import java.util.TreeMap;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent;
 import net.minecraftforge.fml.relauncher.Side;
@@ -32,9 +34,18 @@ public class ClientProxy extends CommonProxy {
     private final FMLClientHandler fmlClientInstance = FMLClientHandler.instance();
 
     @Override
-    public void init(PurpleIRC plugin) {
-        commandHandlers = new CommandHandlers(plugin, this);
-        ClientCommandHandler.instance.registerCommand(commandHandlers);
+    public void preInit(FMLPreInitializationEvent event, PurpleIRC plugin) {
+        super.preInit(event, plugin);
+    }
+
+    @Override
+    public void init(FMLInitializationEvent event) {
+        super.init(event);
+    }
+
+    @Override
+    public void postInit(FMLPostInitializationEvent event) {
+        super.postInit(event);
     }
 
     @Override
@@ -104,14 +115,21 @@ public class ClientProxy extends CommonProxy {
         return fmlClientInstance.getWorldClient();
     }
 
+    @Override
+    public CommandHandlers getCommandHandlers() {
+        return commandHandlers;
+    }
+
     @SubscribeEvent
     public void worldJoined(ClientConnectedToServerEvent event) {
+        commandHandlers = new CommandHandlers(plugin, this);
+        ClientCommandHandler.instance.registerCommand(commandHandlers);
         plugin.startBots();
     }
 
     @Override
-    public CommandHandlers getCommandHandlers() {
-        return commandHandlers;
+    public MinecraftServer getServer() {
+        return fmlClientInstance.getServer();
     }
 
 }

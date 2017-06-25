@@ -1,6 +1,7 @@
 package com.cnaude.purpleirc.Proxies;
 
 import com.cnaude.purpleirc.CommandHandlers;
+import com.cnaude.purpleirc.GameListeners.DynmapListener;
 import com.cnaude.purpleirc.IRCCommand;
 import com.cnaude.purpleirc.PurpleBot;
 import com.cnaude.purpleirc.PurpleIRC;
@@ -13,11 +14,15 @@ import java.util.TreeMap;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.server.FMLServerHandler;
 
@@ -28,12 +33,26 @@ import net.minecraftforge.fml.server.FMLServerHandler;
 public class ServerProxy extends CommonProxy {
 
     final FMLServerHandler fmlServerInstance = FMLServerHandler.instance();
-    
+
     @Override
-    public void init(PurpleIRC plugin) {
+    public void preInit(FMLPreInitializationEvent event, PurpleIRC plugin) {
+        super.preInit(event, plugin);
+    }
+
+    @Override
+    public void init(FMLInitializationEvent event) {
+        super.init(event);
         commandHandlers = new CommandHandlers(plugin, this);
         registerCommands((CommandHandler) fmlServerInstance.getServer().commandManager, commandHandlers);
         plugin.startBots();
+    }
+
+    @Override
+    public void postInit(FMLPostInitializationEvent event) {
+        super.postInit(event);
+        if (Loader.isModLoaded("Dynmap")) {
+            MinecraftForge.EVENT_BUS.register(new DynmapListener(plugin));
+        }
     }
 
     @Override
@@ -119,11 +138,15 @@ public class ServerProxy extends CommonProxy {
     public void registerCommands(CommandHandler handler, CommandHandlers handlers) {
         handler.registerCommand(handlers);
     }
-    
-    
+
     @Override
     public CommandHandlers getCommandHandlers() {
         return commandHandlers;
+    }
+
+    @Override
+    public MinecraftServer getServer() {
+        return fmlServerInstance.getServer();
     }
 
 }

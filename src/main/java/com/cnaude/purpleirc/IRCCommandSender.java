@@ -17,7 +17,6 @@
 package com.cnaude.purpleirc;
 
 import com.cnaude.purpleirc.Proxies.CommonProxy;
-import static com.cnaude.purpleirc.PurpleIRC.proxy;
 import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
@@ -84,7 +83,7 @@ public class IRCCommandSender implements ICommandSender {
 
     @Override
     public boolean sendCommandFeedback() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return true;
     }
 
     @Override
@@ -95,7 +94,7 @@ public class IRCCommandSender implements ICommandSender {
 
     @Override
     public MinecraftServer getServer() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return proxy.getServer();
     }
 
     @Override
@@ -115,12 +114,12 @@ public class IRCCommandSender implements ICommandSender {
 
     @Override
     public void sendMessage(ITextComponent component) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        addMessageToQueue(component.getFormattedText());
     }
 
     @Override
     public boolean canUseCommand(int permLevel, String commandName) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return true;
     }
 
 }

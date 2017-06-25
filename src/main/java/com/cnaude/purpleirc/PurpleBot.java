@@ -351,9 +351,7 @@ public final class PurpleBot {
     }
 
     public void autoJoinChannels() {
-        plugin.logInfo("CHANNEL JOIN BEGIN");
         Timer timer = new Timer();
-plugin.logInfo("CHANNEL JOIN START");
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -372,7 +370,6 @@ plugin.logInfo("CHANNEL JOIN START");
                 }
             }
         }, channelAutoJoinDelay);
-        plugin.logInfo("CHANNEL JOIN END");
     }
 
     public void reload(CommandSender sender) {

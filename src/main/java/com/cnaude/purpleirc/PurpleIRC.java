@@ -16,13 +16,6 @@
  */
 package com.cnaude.purpleirc;
 
-import com.cnaude.purpleirc.GameListeners.DynmapListener;
-import com.cnaude.purpleirc.GameListeners.GamePlayerChatListener;
-import com.cnaude.purpleirc.GameListeners.GamePlayerDeathListener;
-import com.cnaude.purpleirc.GameListeners.GamePlayerJoinListener;
-import com.cnaude.purpleirc.GameListeners.GamePlayerPlayerAchievementAwardedListener;
-import com.cnaude.purpleirc.GameListeners.GamePlayerQuitListener;
-import com.cnaude.purpleirc.GameListeners.GameServerCommandListener;
 import com.cnaude.purpleirc.Hooks.DynmapHook;
 import com.cnaude.purpleirc.Proxies.CommonProxy;
 import com.cnaude.purpleirc.Utilities.CaseInsensitiveMap;
@@ -57,8 +50,6 @@ import java.util.TimerTask;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
@@ -67,11 +58,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.yaml.snakeyaml.scanner.ScannerException;
 import static net.minecraft.util.text.TextFormatting.RED;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.Mod.Instance;
 import net.minecraftforge.fml.common.SidedProxy;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
 /**
  *
@@ -153,7 +143,7 @@ public class PurpleIRC {
     public RegexGlobber regexGlobber;
     public CaseInsensitiveMap<PurpleBot> ircBots;
     public DynmapHook dynmapHook;
-    
+
     private BotWatcher botWatcher;
     public IRCMessageHandler ircMessageHandler;
 
@@ -186,6 +176,21 @@ public class PurpleIRC {
         this.reconnectSuppression = 0;
         this.description = new Description(MOD_ID, "PurpleIRC Forge Mod v" + Version.VER, "http://jenkins.cnaude.org", Version.VER);
     }
+    
+    @EventHandler
+    public void preInit(FMLPreInitializationEvent event) {
+        proxy.preInit(event, this);
+    }
+    
+    @EventHandler
+    public void init(FMLInitializationEvent event) {
+        proxy.init(event);
+    }
+    
+    @EventHandler
+    public void postInit(FMLPostInitializationEvent event) {
+        proxy.postInit(event);
+    }
 
     public Description getDescription() {
         return description;
@@ -212,7 +217,6 @@ public class PurpleIRC {
             }
         }
 
-        
         regexGlobber = new RegexGlobber();
         tokenizer = new ChatTokenizer(this, proxy);
         loadBots();
@@ -222,30 +226,6 @@ public class PurpleIRC {
         ircMessageHandler = new IRCMessageHandler(this, proxy);
         commandQueue = new CommandQueueWatcher(this, proxy);
         updateChecker = new UpdateChecker(this);
-    }
-
-    @EventHandler
-    public void init(FMLInitializationEvent event) {
-
-        proxy.init(this);
-
-        MinecraftForge.EVENT_BUS.register(new GamePlayerDeathListener(this));
-        MinecraftForge.EVENT_BUS.register(new GameServerCommandListener(this));
-        MinecraftForge.EVENT_BUS.register(new GamePlayerChatListener(this));
-
-        MinecraftForge.EVENT_BUS.register(new GamePlayerJoinListener(this));
-        MinecraftForge.EVENT_BUS.register(new GamePlayerQuitListener(this));
-        MinecraftForge.EVENT_BUS.register(new GamePlayerPlayerAchievementAwardedListener(this));
-        
-    }
-
-    @EventHandler
-    public void postInit(FMLPostInitializationEvent event) {
-        if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
-            if (Loader.isModLoaded("Dynmap")) {
-                MinecraftForge.EVENT_BUS.register(new DynmapListener(this));
-            }
-        }
     }
 
     @EventHandler
