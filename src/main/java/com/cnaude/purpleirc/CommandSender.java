@@ -40,7 +40,7 @@ public class CommandSender {
     }
 
     public boolean hasPermission(String permission) {
-        if (sender instanceof EntityPlayer) {
+        if (sender instanceof EntityPlayer && plugin.dynmapHook != null) {
             PermissionsHandler ph = PermissionsHandler.getHandler();
             if (ph != null) {
                 return ph.hasPermission(sender.getCommandSenderEntity().getName(), permission);
