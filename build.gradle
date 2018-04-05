@@ -59,8 +59,9 @@ minecraft {
 }
 
 dependencies {
+    shade 'com.cnaude.pircbotx:pircbotx-shaded:2.1.8'
     compile 'us.dynmap:DynmapCoreAPI:2.1'
-    shade fileTree (dir: 'dist-lib', include: '*.jar')
+    //shade fileTree (dir: 'dist-lib', include: '*.jar')
     shade 'org.yaml:snakeyaml:1.17'
     shade('com.googlecode.json-simple:json-simple:1.1.1') {
         exclude group: 'org.hamcrest', module: 'hamcrest-core'

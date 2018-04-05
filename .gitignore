@@ -6,6 +6,9 @@ bin
 .classpath
 .project
 
+# netbeans
+.nb*
+
 # idea
 out
 *.ipr
